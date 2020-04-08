@@ -9,10 +9,10 @@ cardsRouter.get('/cards', (req, res, next) => {
 
 cardsRouter.get('/cards/:id', (req, res, next) => {
   cards.forEach((item) => {
-    if (item._id === req.params.id) {
+    if (item.id === req.params.id) {
       res.send([item]);
     }
-    res.status(404).send([{ message: 'Нет карточки с таким id' }]);
+    res.status(404).send({ message: 'Нет карточки с таким id' });
   });
   next();
 });

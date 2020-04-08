@@ -1,7 +1,7 @@
 {
   "name": "sprint12",
   "version": "0.1.0",
-  "description": "",
+  "description": "backend part for Yandex.Praktikum training project 'Mesto'",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
