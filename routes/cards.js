@@ -1,6 +1,11 @@
 const cardsRouter = require('express').Router();
+const fs = require('fs');
 
-const cards = require('../data/cards.json');
+let cards;
+fs.promises.readFile('./data/cards.json', { encoding: 'utf8' })
+  .then((data) => {
+    cards = JSON.parse(data);
+  });
 
 cardsRouter.get('/cards', (req, res, next) => {
   res.send(cards);
