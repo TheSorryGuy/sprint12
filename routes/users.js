@@ -1,8 +1,9 @@
 const usersRouter = require('express').Router();
 const fs = require('fs');
+const path = require('path');
 
 let users;
-fs.promises.readFile('./data/users.json', { encoding: 'utf8' })
+fs.promises.readFile(path.join(__dirname, '..', 'data', 'users.json'), { encoding: 'utf8' })
   .then((data) => {
     users = JSON.parse(data);
   });
