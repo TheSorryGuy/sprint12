@@ -1,8 +1,8 @@
 This is a **training project**
 ```
-version: 0.2.0
+version: 0.3.0
 author: Fedor Ganin 
-https://github.com/TheSorryGuy/sprint10/
+https://github.com/TheSorryGuy/sprint12/
 ```
 - use 'npm run start' to start server
 - use 'npm run dev' to start server with hot reload
