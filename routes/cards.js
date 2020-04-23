@@ -1,3 +1,5 @@
+/* eslint no-underscore-dangle: ["error", { "allow": ["_id"] }] */
+
 const cardsRouter = require('express').Router();
 const fs = require('fs');
 const path = require('path');
@@ -12,11 +14,11 @@ cardsRouter.get('/cards', (req, res) => {
     });
 });
 
-cardsRouter.get('/cards/:id', (req, res) => {
+cardsRouter.get('/cards/:_id', (req, res) => {
   fs.promises.readFile(path.join(__dirname, '..', 'data', 'cards.json'), { encoding: 'utf8' })
     .then((data) => {
       JSON.parse(data).forEach((item) => {
-        if (item.id === req.params.id) {
+        if (item._id === req.params._id) {
           res.send([item]);
         }
       });
