@@ -1,11 +1,10 @@
-/* eslint no-underscore-dangle: ["error", { "allow": ["_id"] }] */
 
 const user = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
   user.find({})
     .then((users) => res.send(users))
-    .catch((err) => res.status(404).send({ message: 'Запрашиваемый ресурс не найден', error: err.message }));
+    .catch((err) => res.status(500).send({ message: 'Запрашиваемый ресурс не найден', error: err.message }));
 };
 
 module.exports.getUserById = (req, res) => {
@@ -19,5 +18,21 @@ module.exports.createUser = (req, res) => {
 
   user.create({ name, about, avatar })
     .then((newUser) => res.send(newUser))
-    .catch((err) => res.status(500).send({ message: 'Не удалось создать пользователя', error: err.message }));
+    .catch((err) => res.status(400).send({ message: 'Не удалось создать пользователя', error: err.message }));
+};
+
+module.exports.refreshProfileData = (req, res) => {
+  const { name, about } = req.body;
+
+  user.findByIdAndUpdate(req.user._id, { name: name, about: about}, { new: true, runValidators: true })
+    .then((user) => res.send(user))
+    .catch((err) => res.status(400).send({ message: 'Не удалось обновить информацию о пользователе', error: err.message }));
+};
+
+module.exports.refreshAvatar = (req, res) => {
+  const { avatar } = req.body;
+
+  user.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true, runValidators: true })
+    .then((user) => res.send(user))
+    .catch((err) => res.status(400).send({ message: 'Не удалось обновить аватар', error: err.message }));
 };
