@@ -1,18 +1,18 @@
 const express = require('express');
-const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-const { PORT = 3000 } = process.env;
-const app = express();
-
+const { PORT, DATABASE_URL } = require('./config');
 const users = require('./routes/users');
 const cards = require('./routes/cards');
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
+const app = express();
+
+mongoose.connect(DATABASE_URL, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
+  useUnifiedTopology: true,
 });
 
 

@@ -23,13 +23,13 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.putLike = (req, res) => {
-  card.findByIdAndUpdate (
+  card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-  .then((likedCard) => res.send(likedCard))
-  .catch((err) => res.status(400).send({ message: 'Не удалось поставить лайк', error: err.message }));
+    .then((likedCard) => res.send(likedCard))
+    .catch((err) => res.status(400).send({ message: 'Не удалось поставить лайк', error: err.message }));
 };
 
 module.exports.removeLike = (req, res) => {
@@ -38,6 +38,6 @@ module.exports.removeLike = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-  .then((unlikedCard) => res.send(unlikedCard))
-  .catch((err) => res.status(400).send({ message: 'Не удалось удалить лайк', error: err.message }));
+    .then((unlikedCard) => res.send(unlikedCard))
+    .catch((err) => res.status(400).send({ message: 'Не удалось удалить лайк', error: err.message }));
 };

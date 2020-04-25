@@ -24,15 +24,15 @@ module.exports.createUser = (req, res) => {
 module.exports.refreshProfileData = (req, res) => {
   const { name, about } = req.body;
 
-  user.findByIdAndUpdate(req.user._id, { name: name, about: about}, { new: true, runValidators: true })
-    .then((user) => res.send(user))
+  user.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then((updatedUser) => res.send(updatedUser))
     .catch((err) => res.status(400).send({ message: 'Не удалось обновить информацию о пользователе', error: err.message }));
 };
 
 module.exports.refreshAvatar = (req, res) => {
   const { avatar } = req.body;
 
-  user.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true, runValidators: true })
-    .then((user) => res.send(user))
+  user.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then((updatedUser) => res.send(updatedUser))
     .catch((err) => res.status(400).send({ message: 'Не удалось обновить аватар', error: err.message }));
 };
