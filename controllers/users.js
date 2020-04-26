@@ -1,4 +1,4 @@
-
+const validator = require('validator');
 const user = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
@@ -8,9 +8,16 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserById = (req, res) => {
-  user.find({ _id: req.params._id })
-    .then((userById) => res.send(userById))
-    .catch((err) => res.status(404).send({ message: 'Нет пользователя с таким id', error: err.message }));
+  if (validator.isAlphanumeric(req.params._id) && req.params._id.length === 24) {
+    user.find({ _id: req.params._id })
+      .orFail((err) => {
+        throw new Error(err);
+      })
+      .then((userById) => res.send(userById))
+      .catch((err) => res.status(404).send({ message: 'Нет пользователя с таким id', error: err.message }));
+    return;
+  }
+  res.status(500).send({ message: 'Некорректный id' });
 };
 
 module.exports.createUser = (req, res) => {
@@ -18,7 +25,7 @@ module.exports.createUser = (req, res) => {
 
   user.create({ name, about, avatar })
     .then((newUser) => res.send(newUser))
-    .catch((err) => res.status(400).send({ message: 'Не удалось создать пользователя', error: err.message }));
+    .catch((err) => res.status(500).send({ message: 'Не удалось создать пользователя', error: err.message }));
 };
 
 module.exports.refreshProfileData = (req, res) => {
@@ -26,7 +33,7 @@ module.exports.refreshProfileData = (req, res) => {
 
   user.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => res.status(400).send({ message: 'Не удалось обновить информацию о пользователе', error: err.message }));
+    .catch((err) => res.status(500).send({ message: 'Не удалось обновить информацию о пользователе', error: err.message }));
 };
 
 module.exports.refreshAvatar = (req, res) => {
@@ -34,5 +41,5 @@ module.exports.refreshAvatar = (req, res) => {
 
   user.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => res.status(400).send({ message: 'Не удалось обновить аватар', error: err.message }));
+    .catch((err) => res.status(500).send({ message: 'Не удалось обновить аватар', error: err.message }));
 };
