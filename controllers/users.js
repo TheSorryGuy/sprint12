@@ -1,5 +1,5 @@
-const validator = require('validator');
 const user = require('../models/user');
+const NotFoundError = require('../errors/notFoundError');
 
 module.exports.getUsers = (req, res) => {
   user.find({})
@@ -8,16 +8,13 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserById = (req, res) => {
-  if (validator.isAlphanumeric(req.params._id) && req.params._id.length === 24) {
-    user.find({ _id: req.params._id })
-      .orFail((err) => {
-        throw new Error(err);
-      })
-      .then((userById) => res.send(userById))
-      .catch((err) => res.status(404).send({ message: 'Нет пользователя с таким id', error: err.message }));
-    return;
-  }
-  res.status(500).send({ message: 'Некорректный id' });
+  user.find({ _id: req.params._id })
+    .orFail(new NotFoundError('Нет пользователя с таким id'))
+    .then((userById) => res.send(userById))
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
+    });
 };
 
 module.exports.createUser = (req, res) => {
