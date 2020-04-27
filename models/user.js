@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (item) => validator.isURL(item)
+      validator: (item) => validator.isURL(item),
     },
   },
 });
