@@ -54,7 +54,7 @@ module.exports.login = (req, res) => {
   return user.identifyUser(email, password)
     .then((identifiedUser) => {
       const token = jwt.sign({ _id: identifiedUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).end();
+      res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).send({ message: 'Авторизация прошла успешно' });
     })
     .catch((err) => {
       const statusCode = err.statusCode || 500;
