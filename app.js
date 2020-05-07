@@ -1,18 +1,28 @@
 const express = require('express');
-const path = require('path');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
-const { PORT = 3000 } = process.env;
-const app = express();
-
+const { PORT, DATABASE_URL, SERVER_PARAMS } = require('./config');
 const users = require('./routes/users');
 const cards = require('./routes/cards');
 
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+  req.user = {
+    _id: '5ea21dc998352e295cc4ca6c',
+  };
+  next();
+});
 app.use('/', users);
 app.use('/', cards);
 
 app.listen(PORT, () => {
-  app.use(express.static(path.join(__dirname, 'public')));
   app.use('/', (req, res) => {
     res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
   });
 });
+
+mongoose.connect(DATABASE_URL, SERVER_PARAMS);

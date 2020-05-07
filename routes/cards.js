@@ -1,30 +1,17 @@
+
 const cardsRouter = require('express').Router();
-const fs = require('fs');
-const path = require('path');
+const {
+  getCards,
+  postCard,
+  deleteCard,
+  putLike,
+  removeLike,
+} = require('../controllers/cards');
 
-cardsRouter.get('/cards', (req, res) => {
-  fs.promises.readFile(path.join(__dirname, '..', 'data', 'cards.json'), { encoding: 'utf8' })
-    .then((data) => {
-      res.send(JSON.parse(data));
-    })
-    .catch(() => {
-      res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
-    });
-});
-
-cardsRouter.get('/cards/:id', (req, res) => {
-  fs.promises.readFile(path.join(__dirname, '..', 'data', 'cards.json'), { encoding: 'utf8' })
-    .then((data) => {
-      JSON.parse(data).forEach((item) => {
-        if (item.id === req.params.id) {
-          res.send([item]);
-        }
-      });
-      res.status(404).send({ message: 'Нет карточки с таким id' });
-    })
-    .catch(() => {
-      res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
-    });
-});
+cardsRouter.get('/cards', getCards);
+cardsRouter.post('/cards', postCard);
+cardsRouter.delete('/cards/:cardId', deleteCard);
+cardsRouter.put('/cards/:cardId/likes', putLike);
+cardsRouter.delete('/cards/:cardId/likes', removeLike);
 
 module.exports = cardsRouter;
