@@ -17,8 +17,8 @@ module.exports.postCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  card.findByIdAndDelete({ _id: req.params.cardId })
-    .orFail(new NotFoundError('Нет карточки с таким id'))
+  card.findOneAndDelete({ _id: req.params.cardId, owner: req.user._id })
+    .orFail(new NotFoundError('Нет созданной вами карточки с таким id'))
     .then(() => res.send({ message: 'Карточка удалена' }))
     .catch((err) => {
       const statusCode = err.statusCode || 500;
