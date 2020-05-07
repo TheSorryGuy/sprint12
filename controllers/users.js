@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const user = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
 
@@ -18,9 +20,14 @@ module.exports.getUserById = (req, res) => {
 };
 
 module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  user.create({ name, about, avatar })
+  bcrypt.hash(password, 10)
+    .then((hash) => user.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((newUser) => res.send(newUser))
     .catch((err) => res.status(500).send({ message: 'Не удалось создать пользователя', error: err.message }));
 };
@@ -39,4 +46,18 @@ module.exports.refreshAvatar = (req, res) => {
   user.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
     .catch((err) => res.status(500).send({ message: 'Не удалось обновить аватар', error: err.message }));
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  return user.identifyUser(email, password)
+    .then((identifiedUser) => {
+      const token = jwt.sign({ _id: identifiedUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).end();
+    })
+    .catch((err) => {
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
+    });
 };

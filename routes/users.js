@@ -6,8 +6,10 @@ const {
   getUserById,
   refreshProfileData,
   refreshAvatar,
+  login,
 } = require('../controllers/users');
 
+usersRouter.get('/users/login', login);
 usersRouter.get('/users', getUsers);
 usersRouter.get('/users/:_id', getUserById);
 usersRouter.post('/users', createUser);
