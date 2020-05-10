@@ -6,10 +6,12 @@ version: 0.4.0
 author: Fedor Ganin 
 https://github.com/TheSorryGuy/sprint12
 ```
+Repository name may confuse you, because when i created it, i did not know that this project will have many
+iterations for more then one sprint.
 This is an API, made with express server and mongo data base.
 Most requests require authorization, so you have to create your secret key and user at first.
 
-Generate 16-bit secret-key (use crypto module) like this:
+By default, secret key is string ```secret-key```, it is better to generate random key (use crypto module):
 ```sh
 // console
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'));"

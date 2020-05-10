@@ -1,22 +1,26 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const user = require('../models/user');
+const { SECRET } = require('../config');
 const NotFoundError = require('../errors/notFoundError');
+const DuplicateError = require('../errors/duplicateError');
+const PasswordLengthError = require('../errors/passwordLengthError');
+const ValidationError = require('../errors/validationError');
+
+const sendError = require('../errors/sendErrorFunction');
 
 module.exports.getUsers = (req, res) => {
   user.find({})
     .then((users) => res.send(users))
-    .catch((err) => res.status(500).send({ message: 'Запрашиваемый ресурс не найден', error: err.message }));
+    .catch((err) => sendError(err, res));
 };
+
 
 module.exports.getUserById = (req, res) => {
   user.find({ _id: req.params._id })
     .orFail(new NotFoundError('Нет пользователя с таким id'))
     .then((userById) => res.send(userById))
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
-    });
+    .catch((err) => sendError(err, res));
 };
 
 module.exports.createUser = (req, res) => {
@@ -24,12 +28,32 @@ module.exports.createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
+  if (password.length < 8 || password.length > 30) {
+    const error = new PasswordLengthError('Пароль должен содержать от 8 до 30 символов');
+    sendError(error, res);
+    return;
+  }
+
   bcrypt.hash(password, 10)
     .then((hash) => user.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((newUser) => res.send(newUser))
-    .catch((err) => res.status(500).send({ message: 'Не удалось создать пользователя', error: err.message }));
+    .then((createdUser) => res.send({
+      _id: createdUser._id, name, about, avatar, email,
+    }))
+    .catch((err) => {
+      let error = err;
+
+      if (err.code === 11000) {
+        error = new DuplicateError('email занят');
+      }
+
+      if (err.name === 'ValidationError') {
+        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
+      }
+
+      sendError(error, res);
+    });
 };
 
 module.exports.refreshProfileData = (req, res) => {
@@ -37,7 +61,15 @@ module.exports.refreshProfileData = (req, res) => {
 
   user.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => res.status(500).send({ message: 'Не удалось обновить информацию о пользователе', error: err.message }));
+    .catch((err) => {
+      let error = err;
+
+      if (err.name === 'ValidationError') {
+        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
+      }
+
+      sendError(error, res);
+    });
 };
 
 module.exports.refreshAvatar = (req, res) => {
@@ -45,7 +77,15 @@ module.exports.refreshAvatar = (req, res) => {
 
   user.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => res.status(500).send({ message: 'Не удалось обновить аватар', error: err.message }));
+    .catch((err) => {
+      let error = err;
+
+      if (err.name === 'ValidationError') {
+        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
+      }
+
+      sendError(error, res);
+    });
 };
 
 module.exports.login = (req, res) => {
@@ -53,11 +93,8 @@ module.exports.login = (req, res) => {
 
   return user.identifyUser(email, password)
     .then((identifiedUser) => {
-      const token = jwt.sign({ _id: identifiedUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ _id: identifiedUser._id }, SECRET, { expiresIn: '7d' });
       res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).send({ message: 'Авторизация прошла успешно' });
     })
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
-    });
+    .catch((err) => sendError(err, res));
 };
