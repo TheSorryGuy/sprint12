@@ -1,6 +1,6 @@
 {
   "name": "sprint12",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "backend part for Yandex.Praktikum training project 'Mesto'",
   "main": "app.js",
   "scripts": {
@@ -29,6 +29,7 @@
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.10",
     "validator": "^13.0.0"

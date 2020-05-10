@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
 
 const { PORT, DATABASE_URL, SERVER_PARAMS } = require('./config');
 const users = require('./routes/users');
@@ -12,6 +13,7 @@ const auth = require('./middlewares/auth');
 
 const app = express();
 
+app.use(helmet());
 app.use(cookieParser());
 
 app.use(bodyParser.urlencoded({ extended: true }));
