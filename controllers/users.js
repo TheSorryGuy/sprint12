@@ -52,7 +52,7 @@ module.exports.createUser = (req, res) => {
         error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
       }
 
-      sendError(error, res);
+      return sendError(error, res);
     });
 };
 

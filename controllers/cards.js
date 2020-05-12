@@ -29,11 +29,13 @@ module.exports.postCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   card.findOne({ _id: req.params.cardId })
     .orFail(new NotFoundError('Нет карточки с таким id'))
-    .catch((err) => sendError(err, res));
-
-  card.findOneAndDelete({ _id: req.params.cardId, owner: req.user._id })
-    .orFail(new NotFoundError('Разрешено удалять только собственные карточки'))
-    .then((deletedCard) => res.send(deletedCard))
+    .then((cardExist) => {
+      if (cardExist.owner.toString() !== req.user._id) {
+        throw new NotFoundError('Можно удалять только свои карточки');
+      }
+      cardExist.remove();
+      res.send(cardExist);
+    })
     .catch((err) => sendError(err, res));
 };
 
