@@ -12,6 +12,7 @@ const cards = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const errorHandler = require('./middlewares/errorHandler');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const URLregex = /^https?:\/\/(www.)?(((2[0-5]{2}|2[0-4][0-9]|1?[1-9]?[0-9])\.){3}(2[0-5]{2}|2[0-4][0-9]|1?[1-9]?[0-9])|([\w-]{2,}(\.[\w-]{2,})*\.[a-zA-Z]{2,}))(:\d{2,5})?(\/[\d/a-zA-Z-]+#?)?$/;
 
@@ -23,6 +24,8 @@ app.use(cookieParser());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(requestLogger);
 
 app.post('/signin', login);
 
@@ -40,6 +43,8 @@ app.use(auth);
 
 app.use('/', users);
 app.use('/', cards);
+
+app.use(errorLogger);
 
 app.use(errors());
 app.use(errorHandler);
