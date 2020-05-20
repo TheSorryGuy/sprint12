@@ -1,10 +1,12 @@
 const card = require('../models/card');
 const NotFoundError = require('../errors/notFoundError');
+const ValidationError = require('../errors/validationError');
+const sendError = require('../errors/sendErrorFunction');
 
 module.exports.getCards = (req, res) => {
   card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => res.status(500).send({ message: 'Запрашиваемый ресурс не найден', error: err.message }));
+    .catch((err) => sendError(err, res));
 };
 
 module.exports.postCard = (req, res) => {
@@ -13,17 +15,28 @@ module.exports.postCard = (req, res) => {
 
   card.create({ name, link, owner })
     .then((newCard) => res.send(newCard))
-    .catch((err) => res.status(500).send({ message: 'Не удалось создать карточку', error: err.message }));
+    .catch((err) => {
+      let error;
+
+      if (err.name === 'ValidationError') {
+        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
+      }
+
+      sendError(error, res);
+    });
 };
 
 module.exports.deleteCard = (req, res) => {
-  card.findByIdAndDelete({ _id: req.params.cardId })
+  card.findOne({ _id: req.params.cardId })
     .orFail(new NotFoundError('Нет карточки с таким id'))
-    .then(() => res.send({ message: 'Карточка удалена' }))
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
-    });
+    .then((cardExist) => {
+      if (cardExist.owner.toString() !== req.user._id) {
+        throw new NotFoundError('Можно удалять только свои карточки');
+      }
+      cardExist.remove();
+      res.send(cardExist);
+    })
+    .catch((err) => sendError(err, res));
 };
 
 module.exports.putLike = (req, res) => {
@@ -34,10 +47,7 @@ module.exports.putLike = (req, res) => {
   )
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((likedCard) => res.send(likedCard))
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
-    });
+    .catch((err) => sendError(err, res));
 };
 
 module.exports.removeLike = (req, res) => {
@@ -48,8 +58,5 @@ module.exports.removeLike = (req, res) => {
   )
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((unlikedCard) => res.send(unlikedCard))
-    .catch((err) => {
-      const statusCode = err.statusCode || 500;
-      res.status(statusCode).send({ message: statusCode === 500 ? 'Ошибка на сервере' : err.message });
-    });
+    .catch((err) => sendError(err, res));
 };
