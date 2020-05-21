@@ -2,9 +2,11 @@ MESTO project backend part
 
 This is a **training project**
 ```
-version: 0.4.1
+version: 0.5.0
 author: Fedor Ganin 
-https://github.com/TheSorryGuy/sprint12
+github: https://github.com/TheSorryGuy/sprint12
+server domain: https://sorryguymesto.gq
+server IP: 84.201.138.78
 ```
 Repository name may confuse you, because when i created it, i did not know that this project will have many
 iterations for more then one sprint.
