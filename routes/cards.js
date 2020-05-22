@@ -2,8 +2,7 @@
 const cardsRouter = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 
-const URLregex = /^https?:\/\/(www.)?(((2[0-5]{2}|2[0-4][0-9]|1?[1-9]?[0-9])\.){3}(2[0-5]{2}|2[0-4][0-9]|1?[1-9]?[0-9])|([\w-]{2,}(\.[\w-]{2,})*\.[a-zA-Z]{2,}))(:\d{2,5})?(\/[\d/a-zA-Z-]+#?)?$/;
-
+const { URL_REGEX } = require('../config');
 
 const {
   getCards,
@@ -18,7 +17,7 @@ cardsRouter.get('/cards', getCards);
 cardsRouter.post('/cards', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().pattern(URLregex),
+    link: Joi.string().required().pattern(URL_REGEX),
   }),
 }), postCard);
 

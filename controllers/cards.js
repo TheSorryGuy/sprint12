@@ -1,5 +1,6 @@
 const card = require('../models/card');
 const NotFoundError = require('../errors/notFoundError');
+const AccessError = require('../errors/accessError');
 
 module.exports.getCards = (req, res, next) => {
   card.find({})
@@ -21,7 +22,7 @@ module.exports.deleteCard = (req, res, next) => {
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((cardExist) => {
       if (cardExist.owner.toString() !== req.user._id) {
-        throw new NotFoundError('Можно удалять только свои карточки');
+        throw new AccessError('Можно удалять только свои карточки');
       }
       cardExist.remove();
       res.send(cardExist);
