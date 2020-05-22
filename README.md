@@ -2,7 +2,7 @@ MESTO project backend part
 
 This is a **training project**
 ```
-version: 0.5.0
+version: 0.5.1
 author: Fedor Ganin 
 github: https://github.com/TheSorryGuy/sprint12
 server domain: https://sorryguymesto.gq

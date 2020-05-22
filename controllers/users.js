@@ -12,12 +12,14 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
+// res.send({
+//   _id: createdUser._id, name, about, avatar, email,
+// })
+
 
 module.exports.getUserById = (req, res, next) => {
   user.find({ _id: req.params._id })
-    .orFail(() => {
-      throw new NotFoundError('Нет пользователя с таким id');
-    })
+    .orFail(new NotFoundError('Нет пользователя с таким id'))
     .then((userById) => res.send(userById))
     .catch(next);
 };
@@ -31,9 +33,8 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => user.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((createdUser) => res.send({
-      _id: createdUser._id, name, about, avatar, email,
-    }))
+    .then((createdUser) => user.find({ _id: createdUser._id }))
+    .then((dbUser) => res.send(dbUser))
     .catch((err) => {
       let error = err;
 
