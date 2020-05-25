@@ -1,45 +1,36 @@
 const card = require('../models/card');
 const NotFoundError = require('../errors/notFoundError');
-const ValidationError = require('../errors/validationError');
-const sendError = require('../errors/sendErrorFunction');
+const AccessError = require('../errors/accessError');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
 
-module.exports.postCard = (req, res) => {
+module.exports.postCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
   card.create({ name, link, owner })
     .then((newCard) => res.send(newCard))
-    .catch((err) => {
-      let error;
-
-      if (err.name === 'ValidationError') {
-        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
-      }
-
-      sendError(error, res);
-    });
+    .catch(next);
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   card.findOne({ _id: req.params.cardId })
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((cardExist) => {
-      if (cardExist.owner.toString() !== req.user._id) {
-        throw new NotFoundError('Можно удалять только свои карточки');
+      if (!cardExist.owner.equals(req.user._id)) {
+        throw new AccessError('Можно удалять только свои карточки');
       }
       cardExist.remove();
       res.send(cardExist);
     })
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
 
-module.exports.putLike = (req, res) => {
+module.exports.putLike = (req, res, next) => {
   card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -47,10 +38,10 @@ module.exports.putLike = (req, res) => {
   )
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((likedCard) => res.send(likedCard))
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
 
-module.exports.removeLike = (req, res) => {
+module.exports.removeLike = (req, res, next) => {
   card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -58,5 +49,5 @@ module.exports.removeLike = (req, res) => {
   )
     .orFail(new NotFoundError('Нет карточки с таким id'))
     .then((unlikedCard) => res.send(unlikedCard))
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };

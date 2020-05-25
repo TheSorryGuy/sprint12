@@ -4,43 +4,37 @@ const user = require('../models/user');
 const { SECRET } = require('../config');
 const NotFoundError = require('../errors/notFoundError');
 const DuplicateError = require('../errors/duplicateError');
-const PasswordLengthError = require('../errors/passwordLengthError');
-const ValidationError = require('../errors/validationError');
 
-const sendError = require('../errors/sendErrorFunction');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   user.find({})
     .then((users) => res.send(users))
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
 
+// res.send({
+//   _id: createdUser._id, name, about, avatar, email,
+// })
 
-module.exports.getUserById = (req, res) => {
+
+module.exports.getUserById = (req, res, next) => {
   user.find({ _id: req.params._id })
     .orFail(new NotFoundError('Нет пользователя с таким id'))
     .then((userById) => res.send(userById))
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-
-  if (password.length < 8 || password.length > 30) {
-    const error = new PasswordLengthError('Пароль должен содержать от 8 до 30 символов');
-    sendError(error, res);
-    return;
-  }
 
   bcrypt.hash(password, 10)
     .then((hash) => user.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((createdUser) => res.send({
-      _id: createdUser._id, name, about, avatar, email,
-    }))
+    .then((createdUser) => user.find({ _id: createdUser._id }))
+    .then((dbUser) => res.send(dbUser))
     .catch((err) => {
       let error = err;
 
@@ -48,53 +42,33 @@ module.exports.createUser = (req, res) => {
         error = new DuplicateError('email занят');
       }
 
-      if (err.name === 'ValidationError') {
-        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
-      }
-
-      return sendError(error, res);
+      next(error);
     });
 };
 
-module.exports.refreshProfileData = (req, res) => {
+module.exports.refreshProfileData = (req, res, next) => {
   const { name, about } = req.body;
 
   user.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => {
-      let error = err;
-
-      if (err.name === 'ValidationError') {
-        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
-      }
-
-      sendError(error, res);
-    });
+    .catch(next);
 };
 
-module.exports.refreshAvatar = (req, res) => {
+module.exports.refreshAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   user.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((updatedUser) => res.send(updatedUser))
-    .catch((err) => {
-      let error = err;
-
-      if (err.name === 'ValidationError') {
-        error = new ValidationError(`Поле ${Object.keys(err.errors)} не прошло валидацию`);
-      }
-
-      sendError(error, res);
-    });
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  return user.identifyUser(email, password)
+  user.identifyUser(email, password)
     .then((identifiedUser) => {
       const token = jwt.sign({ _id: identifiedUser._id }, SECRET, { expiresIn: '7d' });
       res.cookie('jwt', token, { maxAge: 3600000 * 24 * 7, httpOnly: true }).send({ message: 'Авторизация прошла успешно' });
     })
-    .catch((err) => sendError(err, res));
+    .catch(next);
 };
